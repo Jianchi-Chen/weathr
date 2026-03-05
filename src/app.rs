@@ -40,8 +40,6 @@ fn generate_offline_weather(rng: &mut impl rand::Rng) -> WeatherData {
     WeatherData {
         condition,
         temperature: rng.random_range(10.0..25.0),
-        apparent_temperature: rng.random_range(10.0..25.0),
-        humidity: rng.random_range(40.0..80.0),
         precipitation: if condition.is_raining() {
             rng.random_range(1.0..5.0)
         } else {
@@ -49,9 +47,6 @@ fn generate_offline_weather(rng: &mut impl rand::Rng) -> WeatherData {
         },
         wind_speed: rng.random_range(5.0..15.0),
         wind_direction: rng.random_range(0.0..360.0),
-        cloud_cover: rng.random_range(20.0..80.0),
-        pressure: rng.random_range(1000.0..1020.0),
-        visibility: Some(10000.0),
         is_day,
         moon_phase: Some(0.5),
         timestamp: now.format("%Y-%m-%dT%H:%M:%S").to_string(),
@@ -106,8 +101,6 @@ impl App {
             let weather = WeatherData {
                 condition: simulated_condition,
                 temperature: 20.0,
-                apparent_temperature: 19.0,
-                humidity: 65.0,
                 precipitation: if simulated_condition.is_raining() {
                     2.5
                 } else {
@@ -119,9 +112,6 @@ impl App {
                     10.0
                 },
                 wind_direction: 225.0,
-                cloud_cover: 50.0,
-                pressure: 1013.0,
-                visibility: Some(10000.0),
                 is_day: !simulate_night,
                 moon_phase: Some(0.5),
                 timestamp: "simulated".to_string(),

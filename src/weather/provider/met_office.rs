@@ -192,13 +192,6 @@ impl WeatherProvider for MetOfficeProvider {
                 current_weather.screen_temperature,
                 "screenTemperature",
             )?,
-            apparent_temperature: current_weather.normalize_temperature(
-                units,
-                &data.parameters,
-                current_weather.feels_like_temperature,
-                "feelsLikeTemperature",
-            )?,
-            humidity: current_weather.screen_relative_humidity,
             precipitation: current_weather.normalize_precipitation_rate(units, &data.parameters)?,
             wind_speed: current_weather.normalize_wind_speeds(
                 units,
@@ -207,11 +200,8 @@ impl WeatherProvider for MetOfficeProvider {
                 "windSpeed10m",
             )?,
             wind_direction: current_weather.wind_direction_from_10m as f64,
-            cloud_cover: current_weather.uv_index as f64, // Unsure if this is correct
-            pressure: current_weather.mslp as f64,
-            visibility: Some(current_weather.visibility as f64),
-            is_day: current_weather.uv_index as i32, // Defaults - Theses will be gathered by the supplementary provider
-            moon_phase: Some(0.5), // Defaults - Theses will be gathered by the supplementary provider
+            is_day: 0, // Defaults - Theses will be gathered by the supplementary provider
+            moon_phase: Some(0.5),
             timestamp: current_weather.time,
             attribution: self.get_attribution().to_string(),
         };
@@ -286,9 +276,11 @@ pub struct MetOfficeProperties {
 pub struct MetOfficeTimeSeries {
     // Weather event Per Hour
     #[serde(rename = "feelsLikeTemperature")]
+    #[allow(dead_code)]
     pub feels_like_temperature: f64,
 
     /// Mean Sea Level Pressure
+    #[allow(dead_code)]
     pub mslp: usize,
     #[serde(rename = "precipitationRate")]
     pub precipitation_rate: f64,
@@ -300,6 +292,7 @@ pub struct MetOfficeTimeSeries {
     pub _screen_dew_point_temp: f64,
 
     #[serde(rename = "screenRelativeHumidity")]
+    #[allow(dead_code)]
     pub screen_relative_humidity: f64,
 
     #[serde(rename = "screenTemperature")]
@@ -311,9 +304,11 @@ pub struct MetOfficeTimeSeries {
     pub time: String,
 
     #[serde(rename = "uvIndex")]
+    #[allow(dead_code)]
     pub uv_index: usize,
 
     #[serde(rename = "visibility")]
+    #[allow(dead_code)]
     pub visibility: usize,
 
     #[serde(rename = "windDirectionFrom10m")]
@@ -423,7 +418,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_response_parse() {
-        let api_key = env::var("MET_OFFICE_API_KEY").unwrap();
+        let api_key = match env::var("MET_OFFICE_API_KEY") {
+            Ok(key) => key,
+            Err(_) => {
+                eprintln!("Skipping test_response_parse: MET_OFFICE_API_KEY not set");
+                return;
+            }
+        };
 
         let location = WeatherLocation {
             latitude: 52.52,
@@ -451,7 +452,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_met_office_provider() {
-        let api_key = env::var("MET_OFFICE_API_KEY").unwrap();
+        let api_key = match env::var("MET_OFFICE_API_KEY") {
+            Ok(key) => key,
+            Err(_) => {
+                eprintln!("Skipping test_met_office_provider: MET_OFFICE_API_KEY not set");
+                return;
+            }
+        };
         let provider_cfg = MetOfficeProviderConfig {
             include_location_name: true,
             api_key,

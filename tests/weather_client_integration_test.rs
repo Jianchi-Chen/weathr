@@ -85,24 +85,12 @@ async fn test_weather_client_integration_realistic_weather_ranges() {
         "Temperature should be within realistic range"
     );
     assert!(
-        weather.humidity >= 0.0 && weather.humidity <= 100.0,
-        "Humidity should be 0-100%"
-    );
-    assert!(
         weather.wind_speed >= 0.0 && weather.wind_speed <= 500.0,
         "Wind speed should be realistic"
     );
     assert!(
         weather.wind_direction >= 0.0 && weather.wind_direction <= 360.0,
         "Wind direction should be 0-360 degrees"
-    );
-    assert!(
-        weather.cloud_cover >= 0.0 && weather.cloud_cover <= 100.0,
-        "Cloud cover should be 0-100%"
-    );
-    assert!(
-        weather.pressure >= 800.0 && weather.pressure <= 1100.0,
-        "Pressure should be realistic (hPa)"
     );
     assert!(
         weather.precipitation >= 0.0,
