@@ -113,12 +113,12 @@ impl MetOfficeProvider {
             .await
             .map_err(|e| WeatherError::Network(NetworkError::from_reqwest(e, &url, 30)))?;
 
-        let data: MetOfficeResponse = response
+        response
+            .error_for_status()
+            .map_err(|e| WeatherError::Network(NetworkError::from_reqwest(e, &url, 30)))?
             .json()
             .await
-            .map_err(|e| WeatherError::Network(NetworkError::from_reqwest(e, &url, 30)))?;
-
-        Ok(data)
+            .map_err(|e| WeatherError::Network(NetworkError::from_reqwest(e, &url, 30)))
     }
 
     fn get_current_time_series(data: &MetOfficeResponse) -> Option<MetOfficeTimeSeries> {
