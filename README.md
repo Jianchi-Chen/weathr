@@ -38,6 +38,14 @@ Features real-time weather from Open-Meteo with animated rain, snow, thunderstor
 
 ## Installation
 
+### Quick Install (macOS, Linux, FreeBSD)
+
+Download and install the latest binary with one command:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Veirt/weathr/main/install.sh | sh
+```
+
 ### Via Cargo
 
 ```bash
