@@ -48,19 +48,23 @@ impl CloudSystem {
 impl CloudSystem {
     pub fn new(terminal_width: u16, terminal_height: u16) -> Self {
         let mut rng = rand::rng();
-        // Add a few initial clouds
-        let count = std::cmp::max(1, terminal_width / 20);
+        let base_wind_x = 0.15;
 
-        let max_capacity = (terminal_width / 20) as usize;
-        let mut clouds = Vec::with_capacity(max_capacity);
+        // Add few initial clouds
+        let count = std::cmp::max(1, terminal_width / 30) as usize;
+        let segment = terminal_width as f32 / count as f32;
 
-        for _ in 0..count {
+        let mut clouds = Vec::with_capacity(count);
+
+        for i in 0..count {
+            let x_min = (i as f32 * segment) as u16;
+            let x_max = ((i as f32 + 1.0) * segment) as u16;
+            let x = rng.random_range(x_min..=x_max) as f32;
             clouds.push(Self::create_random_cloud(
-                terminal_width,
+                x,
                 terminal_height,
-                true,
                 Color::White,
-                0.15,
+                base_wind_x,
                 &mut rng,
             ));
         }
@@ -69,32 +73,24 @@ impl CloudSystem {
             clouds,
             terminal_width,
             terminal_height,
-            base_wind_x: 0.15,
+            base_wind_x,
         }
     }
 
     fn create_random_cloud(
-        width: u16,
+        x: f32,
         height: u16,
-        random_x: bool,
         color: Color,
         base_wind_x: f32,
         rng: &mut impl Rng,
     ) -> Cloud {
         let shapes = CLOUD_SHAPES.get_or_init(Self::create_cloud_shapes);
 
-        let shape_idx = (rng.random::<u32>() as usize) % shapes.len();
+        let shape_idx = rng.random_range(0..shapes.len());
         let shape = shapes[shape_idx].clone();
 
-        let y_range = height / 3;
-        let y = (rng.random::<u16>() % std::cmp::max(1, y_range)) as f32;
-
-        let x = if random_x {
-            (rng.random::<u16>() % width) as f32
-        } else {
-            0.0
-        };
-
+        let y_range = (height / 3).max(1);
+        let y = rng.random_range(0..y_range) as f32;
         let speed = 0.02 + (rng.random::<f32>() * 0.03);
         let wind_x = base_wind_x * (0.8 + rng.random::<f32>() * 0.4);
 
@@ -155,18 +151,20 @@ impl CloudSystem {
         self.clouds.retain(|c| c.x < terminal_width as f32);
 
         let max_clouds = if is_clear {
-            (terminal_width / 40) as usize
+            (terminal_width / 30) as usize
         } else {
             (terminal_width / 20) as usize
         };
 
         let spawn_chance = if is_clear { 0.002 } else { 0.005 };
 
-        if self.clouds.len() < max_clouds && rng.random::<f32>() < spawn_chance {
+        let min_gap = (terminal_width as f32 / 8.0).max(15.0);
+        let too_close = self.clouds.iter().any(|c| c.x < min_gap);
+
+        if self.clouds.len() < max_clouds && !too_close && rng.random::<f32>() < spawn_chance {
             self.clouds.push(Self::create_random_cloud(
-                terminal_width,
+                0.0,
                 terminal_height,
-                false,
                 cloud_color,
                 self.base_wind_x,
                 rng,
