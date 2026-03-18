@@ -9,6 +9,7 @@ mod error;
 mod geolocation;
 mod render;
 mod scene;
+mod theme;
 mod weather;
 
 use clap::{CommandFactory, Parser};
@@ -22,6 +23,7 @@ use crossterm::{
 };
 use render::TerminalRenderer;
 use std::{io, panic};
+use theme::ThemeRegistry;
 
 fn info(silent: bool, msg: &str) {
     if !silent {
@@ -170,6 +172,15 @@ async fn main() -> io::Result<()> {
         }
     }
 
+    let mut theme_registry = ThemeRegistry::new();
+    let theme_id = config.normalized_theme();
+    if theme_registry.set_active(theme_id).is_err() {
+        eprintln!(
+            "Warning: theme '{}' is not registered, falling back to 'default'.",
+            theme_id
+        );
+    }
+
     let mut renderer = match TerminalRenderer::new() {
         Ok(r) => r,
         Err(e) => {
@@ -192,6 +203,7 @@ async fn main() -> io::Result<()> {
         cli.leaves,
         term_width,
         term_height,
+        theme_registry,
     );
 
     let result = tokio::select! {

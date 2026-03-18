@@ -10,6 +10,7 @@ use crate::weather::types::WeatherUnits;
 
 pub const ENV_LATITUDE: &str = "WEATHR_LATITUDE";
 pub const ENV_LONGITUDE: &str = "WEATHR_LONGITUDE";
+pub const DEFAULT_THEME: &str = "default";
 
 #[derive(Deserialize, Debug, Default, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -32,6 +33,12 @@ pub struct Config {
     pub silent: bool,
     #[serde(default)]
     pub provider: HashMap<Provider, Table>,
+    #[serde(default = "default_theme")]
+    pub theme: String,
+}
+
+fn default_theme() -> String {
+    DEFAULT_THEME.to_string()
 }
 
 #[derive(Deserialize, Debug, Default, Clone, PartialEq, Eq, Hash, Serialize, Copy)]
@@ -151,6 +158,15 @@ impl Config {
         Ok(())
     }
 
+    pub fn normalized_theme(&self) -> &str {
+        let theme = self.theme.trim();
+        if theme.is_empty() {
+            DEFAULT_THEME
+        } else {
+            theme
+        }
+    }
+
     pub fn load_from_path(path: &PathBuf) -> Result<Self, ConfigError> {
         let content = fs::read_to_string(path).map_err(|e| ConfigError::ReadError {
             path: path.display().to_string(),
@@ -257,6 +273,26 @@ longitude = -74.0060
     }
 
     #[test]
+    fn test_normalized_theme_defaults_when_blank() {
+        let config = Config {
+            theme: "   ".to_string(),
+            ..Config::default()
+        };
+
+        assert_eq!(config.normalized_theme(), "default");
+    }
+
+    #[test]
+    fn test_normalized_theme_keeps_value() {
+        let config = Config {
+            theme: "retro".to_string(),
+            ..Config::default()
+        };
+
+        assert_eq!(config.normalized_theme(), "retro");
+    }
+
+    #[test]
     fn test_config_missing_latitude() {
         let toml_content = r#"
 [location]
@@ -330,6 +366,7 @@ longitude = 0.0
             units: WeatherUnits::default(),
             silent: false,
             provider: HashMap::new(),
+            theme: "default".to_string(),
         };
         let result = config.validate();
         assert!(result.is_err());
@@ -352,6 +389,7 @@ longitude = 0.0
             units: WeatherUnits::default(),
             silent: false,
             provider: HashMap::new(),
+            theme: "default".to_string(),
         };
         let result = config.validate();
         assert!(result.is_err());
@@ -374,6 +412,7 @@ longitude = 0.0
             units: WeatherUnits::default(),
             silent: false,
             provider: HashMap::new(),
+            theme: "default".to_string(),
         };
         let result = config.validate();
         assert!(result.is_err());
@@ -396,6 +435,7 @@ longitude = 0.0
             units: WeatherUnits::default(),
             silent: false,
             provider: HashMap::new(),
+            theme: "default".to_string(),
         };
         let result = config.validate();
         assert!(result.is_err());
@@ -418,6 +458,7 @@ longitude = 0.0
             units: WeatherUnits::default(),
             silent: false,
             provider: HashMap::new(),
+            theme: "default".to_string(),
         };
         let result = config.validate();
         assert!(result.is_ok());
