@@ -137,8 +137,6 @@ The config file location depends on your platform:
 - **macOS**: `~/Library/Application Support/weathr/config.toml`
 - **Windows**: `~/AppData/Roaming/weathr/config.toml`
 
-You can also place a `config.toml` in the current working directory, which takes priority over the default location.
-
 ### Setup
 
 ```bash
