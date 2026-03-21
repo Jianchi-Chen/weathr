@@ -62,11 +62,48 @@ cd weathr
 cargo install --path .
 ```
 
+### Docker
+
+Run the published image from GHCR:
+
+```bash
+docker run --rm -it ghcr.io/veirt/weathr:latest
+```
+
+Mount your config if you want to use your existing settings:
+
+```bash
+docker run --rm -it \
+  -v "$HOME/.config/weathr:/.config/weathr:ro" \
+  ghcr.io/veirt/weathr:latest
+```
+
+Build the image locally:
+
+```bash
+docker build -t weathr .
+```
+
+Run it interactively so the TUI can access your terminal:
+
+```bash
+docker run --rm -it weathr
+```
+
+Mount your config if you want to use your existing settings:
+
+```bash
+docker run --rm -it \
+  -v "$HOME/.config/weathr:/root/.config/weathr:ro" \
+  weathr
+```
+
+````
 ### Homebrew (macOS)
 
 ```bash
 brew install Veirt/veirt/weathr
-```
+````
 
 ### MacPorts (macOS)
 
