@@ -17,6 +17,9 @@
             --bash <($out/bin/weathr --completions bash) \
             --zsh <($out/bin/weathr --completions zsh) \
             --fish <($out/bin/weathr --completions fish)
+
+          cargo run --offline --locked --release --bin generate-manpage -- weathr.1
+          installManPage weathr.1
         '';
 
         # skip tests (network integration tests can't be completed inside nix build sandbox environment)

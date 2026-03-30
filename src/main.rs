@@ -3,7 +3,6 @@ mod animation_manager;
 mod app;
 mod app_state;
 mod cache;
-mod cli;
 mod config;
 mod error;
 mod geolocation;
@@ -14,7 +13,6 @@ mod weather;
 
 use clap::{CommandFactory, Parser};
 use clap_complete::generate;
-use cli::Cli;
 use config::Config;
 use crossterm::{
     cursor, execute,
@@ -24,6 +22,7 @@ use crossterm::{
 use render::TerminalRenderer;
 use std::{io, panic};
 use theme::ThemeRegistry;
+use weathr::cli::{self, Cli};
 
 fn info(silent: bool, msg: &str) {
     if !silent {
