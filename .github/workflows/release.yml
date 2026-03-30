@@ -106,6 +106,69 @@ jobs:
         with:
           files: ${{ matrix.asset_name }}
 
+  package-linux:
+    name: Package Linux
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: |
+            x86_64-unknown-linux-gnu
+            x86_64-unknown-linux-musl
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: packages-x86_64-unknown-linux-gnu
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+
+      - name: Install nfpm
+        shell: bash
+        run: |
+          go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Build package inputs
+        shell: bash
+        run: |
+          cargo build --locked --release --target x86_64-unknown-linux-gnu --bin weathr
+          cargo build --locked --release --target x86_64-unknown-linux-musl --bin weathr
+          cargo build --locked --release --bin generate-manpage
+
+      - name: Build .deb and .rpm
+        shell: bash
+        run: |
+          ./scripts/package-linux.sh \
+            "${GITHUB_REF_NAME#v}" \
+            amd64 \
+            target/x86_64-unknown-linux-gnu/release/weathr \
+            dist/packages \
+            deb,rpm
+
+      - name: Build .apk
+        shell: bash
+        run: |
+          ./scripts/package-linux.sh \
+            "${GITHUB_REF_NAME#v}" \
+            x86_64 \
+            target/x86_64-unknown-linux-musl/release/weathr \
+            dist/packages \
+            apk
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/packages/*.deb
+            dist/packages/*.rpm
+            dist/packages/*.apk
+
   publish-crate:
     name: Publish to crates.io
     runs-on: ubuntu-latest
